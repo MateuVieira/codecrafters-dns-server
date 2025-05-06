@@ -39,6 +39,13 @@ func (s *DNSServer) Listen() error {
 		receivedData := string(buf[:size])
 		fmt.Printf("Received %d bytes from %s: %s\n", size, source, receivedData)
 
+		question := &Question{
+			Name:  "codecrafters.io",
+			Type:  A,
+			Class: 1,
+		}
+		fmt.Printf("Question: %v\n", question)
+
 		header := Header{
 			ID:      request.Header.ID,
 			Flag:    NewFlag([]byte{0x00, 0x00}),
@@ -53,6 +60,8 @@ func (s *DNSServer) Listen() error {
 		// Create an empty response
 		response := make([]byte, 512)
 		responseHeader := header.Marshal()
+		questionBytes := question.Marshal()
+		copy(response[12:], questionBytes)
 		copy(response[:12], responseHeader)
 
 		_, err = conn.WriteToUDP(response, source)
